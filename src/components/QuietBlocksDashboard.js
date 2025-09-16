@@ -27,7 +27,7 @@ export default function QuietBlocksDashboard() {
     }
 
     fetchBlocks()
-  }, []) // <-- Dependency array updated for simplicity
+  }, [supabase]) // <-- Dependency array updated for simplicity
 
   const handleDelete = async (id) => {
     const { error } = await supabase
