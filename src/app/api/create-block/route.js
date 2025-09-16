@@ -74,7 +74,7 @@ export async function POST(req) {
       createdAt: new Date(),
     }
 
-    console.log('📦 Inserting into MongoDB:', job)
+    console.log('Inserting into MongoDB', job)
 
     // Insert job into MongoDB
     await jobs.insertOne(job)
@@ -85,7 +85,7 @@ export async function POST(req) {
       { status: 200 }
     )
   } catch (mongoError) {
-    console.error('🔥 MongoDB Error:', mongoError)
+    console.error(' MongoDB Error', mongoError)
 
     return new Response(
       JSON.stringify({

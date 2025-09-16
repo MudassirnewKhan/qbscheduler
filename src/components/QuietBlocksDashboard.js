@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '../../lib/supabase' // <-- 1. Import from your new helper file
 import Link from 'next/link'
+// After (runs only once)
+import { useState, useEffect } from 'react' // Make sure useState is imported
 
 export default function QuietBlocksDashboard() {
-  const supabase = createClient() // <-- 2. Call the function to create the client
+  const [supabase] = useState(() => createClient())
   const [blocks, setBlocks] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
