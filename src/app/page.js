@@ -14,7 +14,7 @@ export default function Home() {
     }
 
     getUser()
-  }, [])
+  }, [supabase])
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
