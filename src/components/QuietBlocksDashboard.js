@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { createClient } from '../../lib/supabase' // <-- 1. Import from your new helper file
 import Link from 'next/link'
 // After (runs only once)
-import { useState, useEffect } from 'react' // Make sure useState is imported
 
 export default function QuietBlocksDashboard() {
   const [supabase] = useState(() => createClient())
@@ -50,7 +49,7 @@ export default function QuietBlocksDashboard() {
   if (blocks.length === 0) {
     return (
       <div className="text-center">
-        <p>You haven't scheduled any quiet time yet.</p>
+        <p>You have not scheduled any quiet time yet.</p>
         <Link href="/add-block" className="mt-2 inline-block text-indigo-600 hover:underline">
           Schedule your first block
         </Link>
