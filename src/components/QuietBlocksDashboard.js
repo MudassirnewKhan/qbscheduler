@@ -6,7 +6,7 @@ import Link from 'next/link'
 // After (runs only once)
 
 export default function QuietBlocksDashboard() {
-  const [supabase] = createClient()
+  const supabase = createClient()
   const [blocks, setBlocks] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -22,7 +22,8 @@ export default function QuietBlocksDashboard() {
       if (error) {
         setError(error.message)
       } else {
-        setBlocks(data)
+         setBlocks(Array.isArray(data) ? data : [])
+
       }
       setLoading(false)
     }
