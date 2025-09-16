@@ -1,8 +1,0 @@
-{
-  "functions": {
-    "api/cron/send-study-emails.js": {
-      "runtime": "nodejs18.x",
-      "schedule": "@every 1m"
-    }
-  }
-}
