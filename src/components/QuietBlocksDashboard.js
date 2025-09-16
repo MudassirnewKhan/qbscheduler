@@ -6,7 +6,7 @@ import Link from 'next/link'
 // After (runs only once)
 
 export default function QuietBlocksDashboard() {
-  const [supabase] = useState(() => createClient())
+  const [supabase] = uscreateClient()
   const [blocks, setBlocks] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -28,7 +28,7 @@ export default function QuietBlocksDashboard() {
     }
 
     fetchBlocks()
-  }, [supabase]) // <-- Dependency array updated for simplicity
+  }, []) // <-- Dependency array updated for simplicity
 
   const handleDelete = async (id) => {
     const { error } = await supabase
