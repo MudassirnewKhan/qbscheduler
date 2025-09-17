@@ -56,7 +56,7 @@ export async function POST(req) {
 
       // Send email via Resend
       await resend.emails.send({
-        from: "noreply@yoursite.com", // Make sure this is a verified sender
+        from: "mudassir.wamique.khan@gmail.com", // Make sure this is a verified sender
         to: userEmail,
         subject: "Your Silent Study Block Starts Soon",
         html: `<p>Hey! Your silent study block starts at <strong>${new Date(
