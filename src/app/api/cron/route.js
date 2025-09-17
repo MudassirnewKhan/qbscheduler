@@ -56,8 +56,8 @@ export async function POST(req) {
 
       // Send email via Resend
       await resend.emails.send({
-        from: "mudassir.wamique.khan@gmail.com", // Make sure this is a verified sender
-        to: userEmail,
+        from: "qsscheduler <onboarding@resend.dev>",
+        to: "mudassir.wamique.khan@gmail.com",
         subject: "Your Silent Study Block Starts Soon",
         html: `<p>Hey! Your silent study block starts at <strong>${new Date(
           startTime
