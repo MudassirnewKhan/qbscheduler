@@ -3,77 +3,92 @@ import { Resend } from "resend";
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
-// Initialize clients (only once)
+// Initialize clients
 const resend = new Resend(process.env.RESEND_API_KEY);
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL, // Use service URL env var (not NEXT_PUBLIC)
-  process.env.SUPABASE_SERVICE_ROLE_KEY // Use service role key for admin access
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
 );
-
 const mongoClient = new MongoClient(process.env.MONGODB_URI);
 
 export async function POST(req) {
-  // Check authorization header for CRON_SECRET token
-  const authHeader = req.headers.get("authorization");
-  const token = authHeader?.split(" ")[1];
+  // LOG: Announce that the function has started
+  console.log("CRON job function started...");
 
-  if (token !== process.env.CRON_SECRET) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  // Check authorization header
+  const authHeader = req.headers.get("authorization");
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    // LOG: Log the failed authorization attempt
+    console.warn("Unauthorized attempt to run CRON job.");
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  
+  // LOG: Confirm that authorization was successful
+  console.log("Authorization successful.");
 
   try {
-    // Connect to MongoDB (safe to call multiple times)
     await mongoClient.connect();
-
-    const db = mongoClient.db("your-db"); // Replace with your MongoDB DB name
+    const db = mongoClient.db("your-db"); // ⚠️ Replace with your MongoDB DB name
     const blocks = db.collection("study_blocks");
 
     const now = new Date();
     const tenMinutesLater = new Date(now.getTime() + 10 * 60 * 1000);
 
-    // Find study blocks starting between now and 10 mins from now, not notified yet
-    const upcomingBlocks = await blocks
-      .find({
-        notified: false,
-        startTime: {
-          $gte: now,
-          $lte: tenMinutesLater,
-        },
-      })
-      .toArray();
+    // LOG: The most important log for debugging timezones
+    console.log(`Searching for blocks between ${now.toISOString()} and ${tenMinutesLater.toISOString()} (UTC)`);
+
+    const query = {
+      notified: false,
+      startTime: {
+        $gte: now,
+        $lte: tenMinutesLater,
+      },
+    };
+
+    // LOG: Show the exact query being sent to MongoDB
+    console.log("MongoDB Query:", JSON.stringify(query, null, 2));
+    
+    const upcomingBlocks = await blocks.find(query).toArray();
+
+    // LOG: Show how many blocks were found
+    console.log(`Found ${upcomingBlocks.length} blocks to notify.`);
 
     for (const block of upcomingBlocks) {
-      const { userId, startTime, _id } = block;
-
-      // Get user email from Supabase (admin API)
-      const { data, error } = await supabase.auth.admin.getUserById(userId);
+      // LOG: Log the details of the block being processed
+      console.log(`Processing block ID: ${block._id} for user ID: ${block.userId}`);
+      
+      const { data, error } = await supabase.auth.admin.getUserById(block.userId);
       const userEmail = data?.user?.email;
 
       if (error || !userEmail) {
-        console.warn(`User email not found for userId: ${userId}`);
+        // LOG: Log when a user's email couldn't be found
+        console.warn(`Could not find user email for userId: ${block.userId}. Supabase error:`, error?.message);
         continue;
       }
 
-      // Send email via Resend
+      console.log(`Found email ${userEmail}, sending notification...`);
+      
       await resend.emails.send({
         from: "qsscheduler <onboarding@resend.dev>",
-        to: "mudassir.wamique.khan@gmail.com",
+        to: userEmail, // Changed to the correct user email variable
         subject: "Your Silent Study Block Starts Soon",
         html: `<p>Hey! Your silent study block starts at <strong>${new Date(
-          startTime
+          block.startTime
         ).toLocaleTimeString()}</strong>.</p>`,
       });
 
-      // Mark block as notified in MongoDB
       await blocks.updateOne(
-        { _id: new ObjectId(_id) },
+        { _id: new ObjectId(block._id) },
         { $set: { notified: true } }
       );
+
+      console.log(`Successfully sent notification and updated block ID: ${block._id}`);
     }
 
     return NextResponse.json({ sent: upcomingBlocks.length });
   } catch (err) {
-    console.error("CRON error:", err);
+    // LOG: The existing error log for critical failures
+    console.error("CRON job failed with an error:", err);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
