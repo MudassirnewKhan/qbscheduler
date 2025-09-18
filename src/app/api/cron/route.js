@@ -65,7 +65,7 @@ export async function POST(req) {
 
       await resend.emails.send({
         from: "qsscheduler <onboarding@resend.dev>",
-        to: userEmail,
+        to:  "mudassir.wamique.khan@gmail.com",
         subject: "Your Quiet Block Starts Soon",
         html: `<p>Hey! Your quiet study block starts at <strong>${new Date(
           job.startTime
