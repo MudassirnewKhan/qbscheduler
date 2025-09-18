@@ -63,9 +63,8 @@ export async function POST(req) {
 
       await resend.emails.send({
         from: "qsscheduler <onboarding@resend.dev>",
-        to: userEmail, // Changed back to dynamically use the user's email
+        to: "mudassir.wamique.khan@gmail.com", // Changed back to dynamically use the user's email
         subject: "Your Quiet Block Starts Soon",
-        // ✅ THIS IS THE UPDATED PART
         html: `<p>Hey! Your quiet study block starts at <strong>${new Date(
           job.startTime
         ).toLocaleTimeString('en-IN', {
