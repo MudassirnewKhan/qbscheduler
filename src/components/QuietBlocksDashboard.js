@@ -32,17 +32,28 @@ export default function QuietBlocksDashboard() {
   }, []) // <-- Dependency array updated for simplicity
 
   const handleDelete = async (id) => {
-    const { error } = await supabase
-      .from('quiet_blocks')
-      .delete()
-      .eq('id', id)
+  const confirmed = window.confirm('Are you sure you want to delete this block?')
+  if (!confirmed) return
 
-    if (error) {
-      alert(`Error deleting block: ${error.message}`)
-    } else {
-      setBlocks(blocks.filter(block => block.id !== id))
+  try {
+    const res = await fetch(`/api/delete-block?id=${id}`, {
+      method: 'DELETE',
+    })
+
+    const result = await res.json()
+
+    if (!res.ok) {
+      alert(`Failed to delete block: ${result.error || 'Unknown error'}`)
+      return
     }
+
+    // Remove from local UI
+    setBlocks(blocks.filter(block => block.id !== id))
+  } catch (err) {
+    alert(`Something went wrong: ${err.message}`)
   }
+}
+
   
   // No changes needed below this line, the rendering logic is the same
   if (loading) return <p className="text-center">Loading your schedule...</p>

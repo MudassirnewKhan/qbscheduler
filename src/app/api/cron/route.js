@@ -12,86 +12,79 @@ const supabase = createClient(
 const mongoClient = new MongoClient(process.env.MONGODB_URI);
 
 export async function POST(req) {
-  // LOG: Announce that the function has started
   console.log("CRON job function started...");
 
-  // Check authorization header
   const authHeader = req.headers.get("authorization");
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    // LOG: Log the failed authorization attempt
     console.warn("Unauthorized attempt to run CRON job.");
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  
-  // LOG: Confirm that authorization was successful
+
   console.log("Authorization successful.");
 
   try {
     await mongoClient.connect();
-    const db = mongoClient.db("your-db"); // ⚠️ Replace with your MongoDB DB name
-    const blocks = db.collection("study_blocks");
+
+    // ✅ Replace this with your actual DB name
+    const db = mongoClient.db("your-real-db-name");
+
+    // ✅ Collection must match the one used in create-block route
+    const quietBlockJobs = db.collection("quietBlockJobs");
 
     const now = new Date();
     const tenMinutesLater = new Date(now.getTime() + 10 * 60 * 1000);
 
-    // LOG: The most important log for debugging timezones
-    console.log(`Searching for blocks between ${now.toISOString()} and ${tenMinutesLater.toISOString()} (UTC)`);
+    console.log(`Searching for quiet block jobs between ${now.toISOString()} and ${tenMinutesLater.toISOString()} (UTC)`);
 
     const query = {
-      notified: false,
+      emailSent: false,
       startTime: {
         $gte: now,
         $lte: tenMinutesLater,
       },
     };
 
-    // LOG: Show the exact query being sent to MongoDB
     console.log("MongoDB Query:", JSON.stringify(query, null, 2));
-    
-    const upcomingBlocks = await blocks.find(query).toArray();
 
-    // LOG: Show how many blocks were found
-    console.log(`Found ${upcomingBlocks.length} blocks to notify.`);
+    const upcomingJobs = await quietBlockJobs.find(query).toArray();
 
-    for (const block of upcomingBlocks) {
-      // LOG: Log the details of the block being processed
-      console.log(`Processing block ID: ${block._id} for user ID: ${block.userId}`);
-      
-      const { data, error } = await supabase.auth.admin.getUserById(block.userId);
+    console.log(`Found ${upcomingJobs.length} quiet block jobs to notify.`);
+
+    for (const job of upcomingJobs) {
+      console.log(`Processing job ID: ${job._id} for user ID: ${job.userId}`);
+
+      const { data, error } = await supabase.auth.admin.getUserById(job.userId);
       const userEmail = data?.user?.email;
 
       if (error || !userEmail) {
-        // LOG: Log when a user's email couldn't be found
-        console.warn(`Could not find user email for userId: ${block.userId}. Supabase error:`, error?.message);
+        console.warn(`Could not find user email for userId: ${job.userId}. Supabase error:`, error?.message);
         continue;
       }
 
       console.log(`Found email ${userEmail}, sending notification...`);
-      
+
       await resend.emails.send({
         from: "qsscheduler <onboarding@resend.dev>",
-        to: userEmail, // Changed to the correct user email variable
-        subject: "Your Silent Study Block Starts Soon",
-        html: `<p>Hey! Your silent study block starts at <strong>${new Date(
-          block.startTime
-        ).toLocaleTimeString()}</strong>.</p>`,
+        to: userEmail,
+        subject: "Your Quiet Block Starts Soon",
+        html: `<p>Hey! Your quiet study block starts at <strong>${new Date(
+          job.startTime
+        ).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</strong>.</p>`,
       });
 
-      await blocks.updateOne(
-        { _id: new ObjectId(block._id) },
-        { $set: { notified: true } }
+      await quietBlockJobs.updateOne(
+        { _id: new ObjectId(job._id) },
+        { $set: { emailSent: true } }
       );
 
-      console.log(`Successfully sent notification and updated block ID: ${block._id}`);
+      console.log(`Successfully sent notification and updated job ID: ${job._id}`);
     }
 
-    return NextResponse.json({ sent: upcomingBlocks.length });
+    return NextResponse.json({ sent: upcomingJobs.length });
   } catch (err) {
-    // LOG: The existing error log for critical failures
     console.error("CRON job failed with an error:", err);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  } finally {
+    await mongoClient.close();
   }
 }
