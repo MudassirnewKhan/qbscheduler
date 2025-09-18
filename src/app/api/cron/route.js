@@ -25,10 +25,8 @@ export async function POST(req) {
   try {
     await mongoClient.connect();
 
-    // ✅ Replace this with your actual DB name
-    const db = mongoClient.db("your-real-db-name");
-
-    // ✅ Collection must match the one used in create-block route
+    // Remember to replace this with your actual DB name
+    const db = mongoClient.db("your-real-db-name"); 
     const quietBlockJobs = db.collection("quietBlockJobs");
 
     const now = new Date();
@@ -65,11 +63,16 @@ export async function POST(req) {
 
       await resend.emails.send({
         from: "qsscheduler <onboarding@resend.dev>",
-        to:  "mudassir.wamique.khan@gmail.com",
+        to: userEmail, // Changed back to dynamically use the user's email
         subject: "Your Quiet Block Starts Soon",
+        // ✅ THIS IS THE UPDATED PART
         html: `<p>Hey! Your quiet study block starts at <strong>${new Date(
           job.startTime
-        ).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</strong>.</p>`,
+        ).toLocaleTimeString('en-IN', {
+          hour: '2-digit',
+          minute: '2-digit',
+          timeZone: 'Asia/Kolkata' // Ensures time is shown in IST
+        })}</strong>.</p>`,
       });
 
       await quietBlockJobs.updateOne(
