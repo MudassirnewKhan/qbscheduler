@@ -35,9 +35,9 @@ export default function LoginPage() {
 
   return (
     <div className="max-w-md mx-auto mt-20 p-6 border rounded shadow bg-white">
-      <h1 className="text-2xl font-bold mb-4">Welcome back</h1>
+      <h1 className="text-2xl text-blue-700 font-bold mb-4">Welcome back</h1>
       {/* The form's onSubmit now correctly calls our async handler */}
-      <form onSubmit={handleLogin} className="space-y-4">
+      <form onSubmit={handleLogin} className="space-y-4 text-blue-700">
         <input
           type="email"
           placeholder="Email"

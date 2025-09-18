@@ -60,7 +60,7 @@ export default function QuietBlocksDashboard() {
   if (error) return <p className="text-center text-red-500">Error: {error}</p>
   if (blocks.length === 0) {
     return (
-      <div className="text-center">
+      <div className="text-center text-black">
         <p>You have not scheduled any quiet time yet.</p>
         <Link href="/add-block" className="mt-2 inline-block text-indigo-600 hover:underline">
           Schedule your first block
@@ -74,7 +74,7 @@ export default function QuietBlocksDashboard() {
       <h2 className="text-3xl font-bold text-gray-800">Your Scheduled Blocks</h2>
       <ul className="divide-y divide-gray-200">
         {blocks.map((block) => (
-          <li key={block.id} className="flex items-center justify-between py-4">
+          <li key={block.id} className="flex items-center justify-between py-4 text-emerald-800">
             <div>
               <p className="font-semibold">
                 {new Date(block.start_time).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}

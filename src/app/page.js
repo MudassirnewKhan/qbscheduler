@@ -24,8 +24,8 @@ export default function Home() {
   return (
     
     <main className="flex flex-col items-center justify-center min-h-screen p-4 text-center">
-      <div className="p-8 text-center bg-red-100">
-      <h1 className="text-4xl font-bold text-yellow-700">✅ Tailwind is working!</h1>
+      <div className="p-8 text-center bg-green-300">
+      <h1 className="text-4xl font-bold text-blue-700">Welcome !</h1>
     </div>
       <h1 className="text-3xl font-bold mb-4">📚 Quiet Hours Scheduler</h1>
       <p className="mb-6 text-lg">Plan your focused study blocks and get notified 10 minutes before they start.</p>
